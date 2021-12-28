@@ -17,7 +17,7 @@ namespace FacebookFixDates
         const string EXPORT_ALBUMS_FOLDER_NAME = "_Export";
         const bool EXPORT_USE_ALBUM_FOLDER_NAME = true;
 
-        public LogDetailEnum LogDetailMode { get; set; } = LogDetailEnum.Verbose;
+        public LogDetailEnum LogDetailMode { get; set; } = LogDetailEnum.Normal;
         public event EventHandler<LogEventArgs> Log;
         public void RaiseEventLog(string message, LogDetailEnum detailMode = LogDetailEnum.Normal)
         {
@@ -33,6 +33,7 @@ namespace FacebookFixDates
 
         public void Initialize()
         {
+            Clock.Start();
             if (string.IsNullOrWhiteSpace(FacebookParser.BaseFolderPath))
                 throw new Exception("Facebook base path cannot be null.");
             var facebook_folder = new DirectoryInfo(FacebookParser.BaseFolderPath);
@@ -49,10 +50,10 @@ namespace FacebookFixDates
             FacebookParser.PhotosIndexPage = facebook_photos_index_page_path;
             if (!File.Exists(FacebookParser.PhotosIndexPage))
                 throw new Exception(FacebookParser.PhotosIndexPage);
-            RaiseEventLog("Initialize OK");
+            RaiseEventLog($"Initialize - OK ({Clock.ElapsedMilliseconds:n2}ms.)");
         }
 
-        public void ReadFacebookInformationFromFileSystem()
+        public void ReadFacebookPhotosInformationFromFileSystem()
         {
             var mainDocument = new HtmlDocument();
             mainDocument.Load(FacebookParser.PhotosIndexPage);
@@ -61,14 +62,14 @@ namespace FacebookFixDates
                 Where(p => p.Attributes["class"]?.Value == "_3-96 _2let");
             foreach (var albumNode in albumNodes)
             {
-                var album = GetAlbumFromNode(albumNode);
-                FacebookParser.Albums.Add(album);
+                var album = GetPhotoAlbumFromNode(albumNode);
+                FacebookParser.PhotoAlbums.Add(album);
             }
+            RaiseEventLog($"Reading Info - OK ({Clock.ElapsedMilliseconds:n2}ms.)");
         }
 
-        private PhotosAlbumNode GetAlbumFromNode(HtmlNode albumNode)
+        private PhotosAlbumNode GetPhotoAlbumFromNode(HtmlNode albumNode)
         {
-
             var albumDateNode = albumNode.NextSibling;
             var albumLinkNode = albumNode.FirstChild;
             var albumLinkImageNode = albumLinkNode.FirstChild;
@@ -90,11 +91,10 @@ namespace FacebookFixDates
                 var albumDocument = new HtmlDocument();
                 albumDocument.Load(album.URL);
                 var albumDocumentBodyNode = albumDocument.DocumentNode.SelectSingleNode("//body");
-
                 var albumTitle = albumDocumentBodyNode.SelectNodes("//div").
                     FirstOrDefault(p => p.Attributes["class"]?.Value == "_3b0d");
                 album.Title = albumTitle.InnerText;
-
+                RaiseEventLog($"Reading: {album.Title}");
                 var albumPhotosNodes = albumDocumentBodyNode.SelectNodes("//div").
                     Where(p => p.Attributes["class"]?.Value == "_3-96 _2let");
                 foreach (var albumPhotoNode in albumPhotosNodes)

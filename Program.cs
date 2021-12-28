@@ -17,7 +17,7 @@ namespace FacebookFixDates
                 FacebookParserService = new FacebookParserService(facebook_base_path);
                 FacebookParserService.Log += (s, e) => { Console.WriteLine(e.LogMessage); };
                 FacebookParserService.Initialize();
-                FacebookParserService.ReadFacebookInformationFromFileSystem();
+                FacebookParserService.ReadFacebookPhotosInformationFromFileSystem();
 
             }
             catch (Exception ex)

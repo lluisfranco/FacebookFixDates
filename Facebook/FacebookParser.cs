@@ -7,6 +7,6 @@ namespace FacebookFixDates
         public string BaseFolderPath { get; set; }
         public string PhotosFolderPath { get; set; }
         public string PhotosIndexPage { get; set; }
-        public List<PhotosAlbumNode> Albums { get; set; } = new List<PhotosAlbumNode>();
+        public List<PhotosAlbumNode> PhotoAlbums { get; set; } = new List<PhotosAlbumNode>();
     }
 }
