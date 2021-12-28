@@ -21,7 +21,7 @@ namespace FacebookFixDates
 
             var facebook_base_path = Console.ReadLine();
 
-            facebook_base_path = "C:\\fb"; //"/home/lluisfranco/Pictures/Fb";//"C:\\fb";
+            facebook_base_path = "/home/lluisfranco/Pictures/Fb";//"C:\\fb";
             FacebookParser.BaseFolderPath = facebook_base_path;
 
             if (string.IsNullOrWhiteSpace(FacebookParser.BaseFolderPath))
@@ -90,13 +90,14 @@ namespace FacebookFixDates
                                     photo.Date = photoDate;
                                     album.Photos.Add(photo);
 
-                                    //var file = ImageFile.FromFile(photoURL);
+                                    var file = ImageFile.FromFile(photoURL);
 
-                                    //var isoTag = file.Properties.Get<ExifUShort>(ExifTag.ISOSpeedRatings);
-                                    //var dateTag = file.Properties.Get<ExifDateTime>(ExifTag.DateTimeOriginal);
-                                    //var newdate = dateTag.Value.AddDays(1);
-                                    //file.Properties.Set(ExifTag.DateTimeOriginal, newdate);
-                                    //file.Save(photoURL);
+                                    var isoTag = file.Properties.Get<ExifUShort>(ExifTag.ISOSpeedRatings);
+                                    var dateTag = file.Properties.Get<ExifDateTime>(ExifTag.DateTimeOriginal);
+                                    var photoExifDate = dateTag?.Value ?? DateTime.Today;
+                                    var newdate = photoExifDate.AddDays(1);
+                                    file.Properties.Set(ExifTag.DateTimeOriginal, newdate);
+                                    file.Save(photoURL);
                                 }
                             }
                             FacebookParser.Albums.Add(album);
