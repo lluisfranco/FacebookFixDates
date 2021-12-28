@@ -1,16 +1,14 @@
-﻿using ExifLibrary;
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FacebookFixDates
 {
     public class FacebookParserService
     {
+        Stopwatch Clock = new Stopwatch();
         public FacebookParser FacebookParser { get; private set; } = new FacebookParser();
         
         const string FB_PHOTOS_FOLDER_NAME = "photos_and_videos";
@@ -19,9 +17,17 @@ namespace FacebookFixDates
         const string EXPORT_ALBUMS_FOLDER_NAME = "_Export";
         const bool EXPORT_USE_ALBUM_FOLDER_NAME = true;
 
+        public LogDetailEnum LogDetailMode { get; set; } = LogDetailEnum.Verbose;
+        public event EventHandler<LogEventArgs> Log;
+        public void RaiseEventLog(string message, LogDetailEnum detailMode = LogDetailEnum.Normal)
+        {
+            if (LogDetailMode == LogDetailEnum.Disabled) return;
+            if (LogDetailMode >= detailMode)
+                Log?.Invoke(this, new LogEventArgs() { LogMessage = message });
+        }
+
         public FacebookParserService(string facebookBasePath)
         {
-            facebookBasePath = "C:\\fb";// "/home/lluisfranco/Pictures/Fb";//"C:\\fb";
             FacebookParser.BaseFolderPath = facebookBasePath;
         }
 
@@ -43,6 +49,7 @@ namespace FacebookFixDates
             FacebookParser.PhotosIndexPage = facebook_photos_index_page_path;
             if (!File.Exists(FacebookParser.PhotosIndexPage))
                 throw new Exception(FacebookParser.PhotosIndexPage);
+            RaiseEventLog("Initialize OK");
         }
 
         public void ReadFacebookInformationFromFileSystem()
@@ -61,12 +68,14 @@ namespace FacebookFixDates
 
         private PhotosAlbumNode GetAlbumFromNode(HtmlNode albumNode)
         {
+
             var albumDateNode = albumNode.NextSibling;
             var albumLinkNode = albumNode.FirstChild;
             var albumLinkImageNode = albumLinkNode.FirstChild;
             var albumName = albumLinkNode.Attributes["href"]?.Value;
             var albumDate = Convert.ToDateTime(albumDateNode.InnerText);
             var albumCoverImageURL = albumLinkImageNode.Attributes["src"]?.Value;
+            RaiseEventLog($"Start - Reading Album Info '{albumName}'", LogDetailEnum.Verbose);
             var album = new PhotosAlbumNode
             {
                 Name = albumName,
@@ -94,6 +103,8 @@ namespace FacebookFixDates
                     album.Photos.Add(photo);
                 }
             }
+            RaiseEventLog($"{album.Photos.Count} photos in '{albumName}'", LogDetailEnum.Verbose);
+            RaiseEventLog($"End - Reading Album Info '{albumName}'", LogDetailEnum.Verbose);
             return album;
         }
 
