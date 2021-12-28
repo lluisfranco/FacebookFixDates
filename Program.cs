@@ -29,7 +29,7 @@ namespace FacebookFixDates
 
             var facebook_base_path = Console.ReadLine();
 
-            facebook_base_path = "/home/lluisfranco/Pictures/Fb";//"C:\\fb";
+            facebook_base_path = "C:\\fb"; //"/home/lluisfranco/Pictures/Fb";//"C:\\fb";
 
             if (string.IsNullOrWhiteSpace(facebook_base_path))
             {
