@@ -30,67 +30,69 @@ namespace FacebookFixDates
             var facebook_base_path = Console.ReadLine();
 
             facebook_base_path = "C:\\fb"; //"/home/lluisfranco/Pictures/Fb";//"C:\\fb";
+            FacebookParser.BaseFolderPath = facebook_base_path;
 
-            if (string.IsNullOrWhiteSpace(facebook_base_path))
+            if (string.IsNullOrWhiteSpace(FacebookParser.BaseFolderPath))
             {
                 Console.WriteLine("Facebook base path cannot be null.");
                 return;
             }
-            FacebookParser.BaseFolderPath = facebook_base_path;
-            var facebook_folder = new DirectoryInfo(facebook_base_path);
+            var facebook_folder = new DirectoryInfo(FacebookParser.BaseFolderPath);
             if (facebook_folder.Exists)
             {
-                var facebook_photos_path = Path.GetFullPath(Path.Combine(facebook_base_path, FB_PHOTOS_FOLDER_NAME));
+                var facebook_photos_path = Path.GetFullPath(
+                    Path.Combine(FacebookParser.BaseFolderPath, FB_PHOTOS_FOLDER_NAME));
                 var facebook_photos_folder = new DirectoryInfo(facebook_photos_path);
+                FacebookParser.PhotosFolderPath = facebook_photos_path; 
                 if (facebook_photos_folder.Exists)
                 {
-                    FacebookParser.PhotosFolderPath = facebook_folder.FullName; 
-                    var facebook_photos_index_page_path = Path.GetFullPath(Path.Combine(facebook_photos_path, FB_PHOTOS_INDEX_PAGE_NAME));
-                    if (File.Exists(facebook_photos_index_page_path))
+                    var facebook_photos_index_page_path = Path.GetFullPath(
+                        Path.Combine(FacebookParser.PhotosFolderPath, FB_PHOTOS_INDEX_PAGE_NAME));
+                    FacebookParser.PhotosIndexPage = facebook_photos_index_page_path;
+                    if (File.Exists(FacebookParser.PhotosIndexPage))
                     {
-                        FacebookParser.PhotosIndexPage = facebook_photos_index_page_path;
-                        var doc = new HtmlDocument();
-                        doc.Load(facebook_photos_index_page_path);
-                        var node = doc.DocumentNode.SelectSingleNode("//body");
-
-                        var divNodesAlbums = node.SelectNodes("//div").
+                        var mainDocument = new HtmlDocument();
+                        mainDocument.Load(FacebookParser.PhotosIndexPage);
+                        var mainDocumentBodyNode = mainDocument.DocumentNode.SelectSingleNode("//body");
+                        var albumNodes = mainDocumentBodyNode.SelectNodes("//div").
                             Where(p => p.Attributes["class"].Value == "_3-96 _2let");
-                        foreach (var divNodesAlbum in divNodesAlbums)
+                        foreach (var albumNode in albumNodes)
                         {
                             var album = new AlbumNode();
-
-                            var prev = divNodesAlbum.PreviousSibling;
-                            var next = divNodesAlbum.NextSibling;
-
-                            album.Title = next.InnerText;
-
-                            var nodeLink = divNodesAlbum.FirstChild;
+                            var prevNode = albumNode.PreviousSibling;
+                            var nextNode = albumNode.NextSibling;
+                            var nodeLink = albumNode.FirstChild;
                             var nodeLinkImage = nodeLink.FirstChild;
-
+                            album.Title = nextNode.InnerText;
                             album.Name = nodeLink.Attributes["href"].Value;
-                            album.URL = Path.GetFullPath(Path.Combine(facebook_base_path, album.Name));
+                            album.URL = Path.GetFullPath(
+                                Path.Combine(FacebookParser.BaseFolderPath, album.Name));
+                            album.CoverImageURL = Path.GetFullPath(
+                                Path.Combine(FacebookParser.BaseFolderPath, nodeLinkImage.Attributes["src"].Value));
 
                             if (File.Exists(album.URL))
                             {
+                                var albumDocument = new HtmlDocument();
+                                albumDocument.Load(album.URL);
+                                var albumDocumentBodyNode = albumDocument.DocumentNode.SelectSingleNode("//body");
 
                             }
-                            album.CoverImageURL = Path.Combine(facebook_photos_path, nodeLinkImage.Attributes["src"].Value);
                             FacebookParser.Albums.Add(album);
                         }
                     }
                     else
                     {
-                        PrintItemDontExistsMessage(facebook_photos_index_page_path);
+                        PrintItemDontExistsMessage(FacebookParser.PhotosIndexPage);
                     }
                 }
                 else
                 {
-                    PrintItemDontExistsMessage(facebook_photos_path);
+                    PrintItemDontExistsMessage(FacebookParser.PhotosFolderPath);
                 }
             }
             else
             {
-                PrintItemDontExistsMessage(facebook_base_path);
+                PrintItemDontExistsMessage(FacebookParser.BaseFolderPath);
             }
         }
 
