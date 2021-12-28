@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ExifLibNet" Version="2.1.4" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.39" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 
 </Project>
