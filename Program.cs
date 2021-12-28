@@ -99,6 +99,8 @@ namespace FacebookFixDates
                                     photo.URL = photoURL;
                                     photo.Date = photoDate;
                                     album.Photos.Add(photo);
+
+                                    
                                 }
                             }
                             FacebookParser.Albums.Add(album);
