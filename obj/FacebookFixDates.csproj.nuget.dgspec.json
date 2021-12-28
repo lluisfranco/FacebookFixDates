@@ -1,26 +1,35 @@
 {
   "format": 1,
   "restore": {
-    "/home/lluisfranco/Code/FacebookFixDates/FacebookFixDates.csproj": {}
+    "C:\\Users\\lfranco\\source\\repos\\FacebookFixDates\\FacebookFixDates.csproj": {}
   },
   "projects": {
-    "/home/lluisfranco/Code/FacebookFixDates/FacebookFixDates.csproj": {
+    "C:\\Users\\lfranco\\source\\repos\\FacebookFixDates\\FacebookFixDates.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/lluisfranco/Code/FacebookFixDates/FacebookFixDates.csproj",
+        "projectUniqueName": "C:\\Users\\lfranco\\source\\repos\\FacebookFixDates\\FacebookFixDates.csproj",
         "projectName": "FacebookFixDates",
-        "projectPath": "/home/lluisfranco/Code/FacebookFixDates/FacebookFixDates.csproj",
-        "packagesPath": "/home/lluisfranco/.nuget/packages/",
-        "outputPath": "/home/lluisfranco/Code/FacebookFixDates/obj/",
+        "projectPath": "C:\\Users\\lfranco\\source\\repos\\FacebookFixDates\\FacebookFixDates.csproj",
+        "packagesPath": "C:\\Users\\lfranco\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\lfranco\\source\\repos\\FacebookFixDates\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\DevExpress 21.2\\Components\\Offline Packages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
         "configFilePaths": [
-          "/home/lluisfranco/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\lfranco\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 21.2.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net5.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Program Files (x86)\\DevExpress 21.2\\Components\\System\\Components\\Packages": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.devexpress.com/XdCOBror98v8aee4QoQa23hIggrq21gbIEcz6KAi8VKlkGca1W/api": {}
         },
         "frameworks": {
           "net5.0": {
@@ -37,6 +46,12 @@
       "frameworks": {
         "net5.0": {
           "targetAlias": "net5.0",
+          "dependencies": {
+            "HtmlAgilityPack": {
+              "target": "Package",
+              "version": "[1.11.39, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -47,12 +62,18 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[5.0.13, 5.0.13]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/5.0.404/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.101\\RuntimeIdentifierGraph.json"
         }
       }
     }

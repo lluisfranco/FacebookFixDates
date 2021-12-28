@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "AfHSwY4rcx17/rQy7dyiM/yDFG7YdOI6CmuVx5aXiIJw9NH3v1CvJLWoM3RoZ8yz6FBAeUcqcc1dTNvEPczVHw==",
+  "dgSpecHash": "Eq2MjJCy/7gi19YLn+yPgcGUdb4Mffbk9+YfpLT6xuqRfZiCpVDxGe9+GBjmilvnnt0w7P97VMxuIHh0FpkwcA==",
   "success": true,
-  "projectFilePath": "/home/lluisfranco/Code/FacebookFixDates/FacebookFixDates.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "C:\\Users\\lfranco\\source\\repos\\FacebookFixDates\\FacebookFixDates.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\lfranco\\.nuget\\packages\\htmlagilitypack\\1.11.39\\htmlagilitypack.1.11.39.nupkg.sha512",
+    "C:\\Users\\lfranco\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\5.0.13\\microsoft.netcore.app.host.win-x64.5.0.13.nupkg.sha512"
+  ],
   "logs": []
 }
