@@ -25,7 +25,9 @@ namespace FacebookFixDates
 
             const string FB_PHOTOS_FOLDER_NAME = "photos_and_videos";
             const string FB_PHOTOS_INDEX_PAGE_NAME = "your_photos.html";
-            //const string FB_ALBUMS_FOLDER_NAME = "album";
+            
+            const string EXPORT_ALBUMS_FOLDER_NAME = "_ExportedPhotos";
+            const bool EXPORT_USE_ALBUM_FOLDER_NAME = true;
 
             var facebook_base_path = Console.ReadLine();
 
@@ -55,20 +57,21 @@ namespace FacebookFixDates
                         mainDocument.Load(FacebookParser.PhotosIndexPage);
                         var mainDocumentBodyNode = mainDocument.DocumentNode.SelectSingleNode("//body");
                         var albumNodes = mainDocumentBodyNode.SelectNodes("//div").
-                            Where(p => p.Attributes["class"].Value == "_3-96 _2let");
+                            Where(p => p.Attributes["class"]?.Value == "_3-96 _2let");
                         foreach (var albumNode in albumNodes)
                         {
                             var album = new AlbumNode();
                             var prevNode = albumNode.PreviousSibling;
                             var nextNode = albumNode.NextSibling;
-                            var nodeLink = albumNode.FirstChild;
-                            var nodeLinkImage = nodeLink.FirstChild;
-                            album.Title = nextNode.InnerText;
-                            album.Name = nodeLink.Attributes["href"].Value;
+                            var linkNode = albumNode.FirstChild;
+                            var linkImageNode = linkNode.FirstChild;
+                            //album.Title = nextNode.InnerText;                            
+                            album.Name = linkNode.Attributes["href"]?.Value;
+                            album.Date = Convert.ToDateTime(nextNode.InnerText);
                             album.URL = Path.GetFullPath(
                                 Path.Combine(FacebookParser.BaseFolderPath, album.Name));
                             album.CoverImageURL = Path.GetFullPath(
-                                Path.Combine(FacebookParser.BaseFolderPath, nodeLinkImage.Attributes["src"].Value));
+                                Path.Combine(FacebookParser.BaseFolderPath, linkImageNode.Attributes["src"]?.Value));
 
                             if (File.Exists(album.URL))
                             {
@@ -76,6 +79,27 @@ namespace FacebookFixDates
                                 albumDocument.Load(album.URL);
                                 var albumDocumentBodyNode = albumDocument.DocumentNode.SelectSingleNode("//body");
 
+                                var albumTitle = albumDocumentBodyNode.SelectNodes("//div").
+                                    FirstOrDefault(p => p.Attributes["class"]?.Value == "_3b0d");
+                                album.Title = albumTitle.InnerText;
+
+                                var albumPhotosNodes = albumDocumentBodyNode.SelectNodes("//div").
+                                    Where(p => p.Attributes["class"]?.Value == "_3-96 _2let");
+                                foreach (var albumPhotoNode in albumPhotosNodes)
+                                {
+                                    var photoLinkNode = albumPhotoNode.FirstChild;
+                                    var photoParentFrameNode = albumPhotoNode.ParentNode;
+                                    var dateNode = photoParentFrameNode.LastChild;
+                                    var photoDate = Convert.ToDateTime(dateNode.InnerText);
+                                    var photoName = photoLinkNode.Attributes["href"]?.Value;
+                                    var photoURL = Path.GetFullPath(
+                                        Path.Combine(FacebookParser.BaseFolderPath, photoName));
+                                    var photo = new PhotoNode();
+                                    photo.Name = photoName;
+                                    photo.URL = photoURL;
+                                    photo.Date = photoDate;
+                                    album.Photos.Add(photo);
+                                }
                             }
                             FacebookParser.Albums.Add(album);
                         }
@@ -100,6 +124,16 @@ namespace FacebookFixDates
         {
             Console.WriteLine($"OOps! '{item_path}' doesn't exists.");
         }
+
+        private static string ReplaceInvalidCharsInFileName(string filename)
+        {
+            var invalid = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
+            foreach (char c in invalid)
+            {
+                filename = filename.Replace(c.ToString(), "_");
+            }
+            return filename;
+        }
     }
 
     public class FacebookParser
@@ -116,5 +150,14 @@ namespace FacebookFixDates
         public string Title { get; set; }
         public string URL { get; set; }
         public string CoverImageURL { get; set; }
+        public DateTime Date { get; set; }
+        public List<PhotoNode> Photos { get; set; } = new List<PhotoNode>();
+    }
+
+    public class PhotoNode
+    {
+        public string Name { get; set; }
+        public string URL { get; set; }
+        public DateTime Date { get; set; }
     }
 }
