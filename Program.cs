@@ -25,11 +25,11 @@ namespace FacebookFixDates
 
             const string FB_PHOTOS_FOLDER_NAME = "photos_and_videos";
             const string FB_PHOTOS_INDEX_PAGE_NAME = "your_photos.html";
-            const string FB_ALBUMS_FOLDER_NAME = "album";
+            //const string FB_ALBUMS_FOLDER_NAME = "album";
 
             var facebook_base_path = Console.ReadLine();
 
-            facebook_base_path = "C:\\fb";
+            facebook_base_path = "/home/lluisfranco/Pictures/Fb";//"C:\\fb";
 
             if (string.IsNullOrWhiteSpace(facebook_base_path))
             {
