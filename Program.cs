@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace FacebookFixDates
 {
@@ -19,6 +20,7 @@ namespace FacebookFixDates
                 FacebookParserService.Initialize();
                 FacebookParserService.ReadPhotosInformationFromFileSystem();
                 FacebookParserService.ExportInformationToFileSystem();
+                PrintSummary();
             }
             catch (Exception ex)
             {
@@ -28,19 +30,29 @@ namespace FacebookFixDates
 
         private static void PrintHeader()
         {
-            Console.WriteLine("*****************************************************************************************");
-            Console.WriteLine("** FACEBOOK BACKUP UTILITY - PHOTOS/VIDEOS DATES FIXER                                 **");
-            Console.WriteLine("** When you backup your Facebook profile, a ZIP file is generated with all your info.  **");
-            Console.WriteLine("** Once unzipped, there is a folder named 'photos_and_videos which contains all your   **");
-            Console.WriteLine("** albums, profile and timeline photos, organized in folders.                          **");
-            Console.WriteLine("** These folders contains your photos but some metadata has been removed (like date)   **");
-            Console.WriteLine("** This script reads the content of your profile, reading from the HTML pages,         **");
-            Console.WriteLine("** and fixing the photo metadata. After finishing, all then photos are copied          **");
-            Console.WriteLine("** to a new folder called '_Export'                                                    **");
-            Console.WriteLine("*****************************************************************************************");
-            Console.WriteLine();
-            Console.WriteLine("Enter your Facebook backup base path ('C:\\FB' (Win) or '/home/<user>/FB' (Linux or Mac)");
+            Console.WriteLine($"*****************************************************************************************");
+            Console.WriteLine($"** FACEBOOK BACKUP UTILITY - PHOTOS/VIDEOS DATES FIXER                                 **");
+            Console.WriteLine($"** When you backup your Facebook profile, a ZIP file is generated with all your info.  **");
+            Console.WriteLine($"** Once unzipped, there is a folder named 'photos_and_videos which contains all your   **");
+            Console.WriteLine($"** albums, profile and timeline photos, organized in folders.                          **");
+            Console.WriteLine($"** These folders contains your photos but some metadata has been removed (like date)   **");
+            Console.WriteLine($"** This script reads the content of your profile, reading from the HTML pages,         **");
+            Console.WriteLine($"** and fixing the photo metadata. After finishing, all then photos are copied          **");
+            Console.WriteLine($"** to a new folder called '_Export'                                                    **");
+            Console.WriteLine($"*****************************************************************************************");
+            Console.WriteLine($"");
+            Console.WriteLine($"Enter your Facebook backup base path ('C:\\FB' (Win) or '/home/<user>/FB' (Linux or Mac)");
         }
 
+        private static void PrintSummary()
+        {
+            Console.WriteLine($"*****************************************************************************************");
+            Console.WriteLine($"** EXPORT SUMMARY");
+            Console.WriteLine($"** TOTAL ALBUMS: {FacebookParserService.TotalAlbumsExported}");
+            Console.WriteLine($"** TOTAL PHOTOS: {FacebookParserService.TotalPhotosExported}");
+            Console.WriteLine($"** TOTAL ERRORS: {FacebookParserService.TotalErrors}");
+            Console.WriteLine($"** Elapsed Time: {FacebookParserService.Clock.ElapsedMilliseconds / 1000:n2}s.");
+            Console.WriteLine($"*****************************************************************************************");
+        }
     }
 }

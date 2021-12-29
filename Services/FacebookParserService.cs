@@ -9,18 +9,19 @@ namespace FacebookFixDates
 {
     public class FacebookParserService
     {
-        readonly Stopwatch Clock = new();
-        public FacebookParser FacebookParser { get; private set; } = new FacebookParser();
-        
-        const string FB_PHOTOS_FOLDER_NAME = "photos_and_videos";
-        const string FB_PHOTOS_INDEX_PAGE_NAME = "your_photos.html";
-        const string FB_VIDEOS_INDEX_PAGE_NAME = "your_videos.html";
-        const string EXPORT_FOLDER_NAME = "_Export";
-        const bool EXPORT_USE_ALBUM_FOLDER_NAME = true;
-        const string EXPORT_PHOTOS_FOLDER_NAME = "Photos";
-
+        public Stopwatch Clock { get; private set; } = new();
+        public FacebookParser FacebookParser { get; private set; } = new();
         public LogDetailEnum LogDetailMode { get; set; } = LogDetailEnum.Normal;
         public event EventHandler<LogEventArgs> Log;
+        public int TotalAlbumsExported { get; private set; }
+        public int TotalPhotosExported { get; private set; }
+        public int TotalErrors { get; private set; }
+
+        const string FB_PHOTOS_FOLDER_NAME = "photos_and_videos";
+        const string FB_PHOTOS_INDEX_PAGE_NAME = "your_photos.html";
+        const string EXPORT_FOLDER_NAME = "_Export";
+        const string EXPORT_PHOTOS_FOLDER_NAME = "Photos";
+
         public void RaiseEventLog(string message, LogDetailEnum detailMode = LogDetailEnum.Normal)
         {
             if (LogDetailMode == LogDetailEnum.Disabled) return;
@@ -65,49 +66,58 @@ namespace FacebookFixDates
             foreach (var albumNode in albumNodes)
             {
                 var album = GetPhotoAlbumFromNode(albumNode);
-                FacebookParser.PhotoAlbums.Add(album);
+                if (album != null) FacebookParser.PhotoAlbums.Add(album);
             }
             RaiseEventLog($"Reading Info - OK ({Clock.ElapsedMilliseconds:n2}ms.)");
         }
 
         private PhotosAlbumNode GetPhotoAlbumFromNode(HtmlNode albumNode)
         {
-            var albumDateNode = albumNode.NextSibling;
-            var albumLinkNode = albumNode.FirstChild;
-            var albumLinkImageNode = albumLinkNode.FirstChild;
-            var albumName = albumLinkNode.Attributes["href"]?.Value;
-            var albumDate = Convert.ToDateTime(albumDateNode.InnerText);
-            var albumCoverImageURL = albumLinkImageNode.Attributes["src"]?.Value;
-            RaiseEventLog($"Start - Reading Album Info '{albumName}'", LogDetailEnum.Verbose);
-            var album = new PhotosAlbumNode
+            try
             {
-                Name = albumName,
-                Date = albumDate,
-                URL = Path.GetFullPath(
-                    Path.Combine(FacebookParser.BaseFolderPath, albumName)),
-                CoverImageURL = Path.GetFullPath(
-                    Path.Combine(FacebookParser.BaseFolderPath, albumCoverImageURL))
-            };
-            if (File.Exists(album.URL))
-            {
-                var albumDocument = new HtmlDocument();
-                albumDocument.Load(album.URL);
-                var albumDocumentBodyNode = albumDocument.DocumentNode.SelectSingleNode("//body");
-                var albumTitle = albumDocumentBodyNode.SelectNodes("//div").
-                    FirstOrDefault(p => p.Attributes["class"]?.Value == "_3b0d");
-                album.Title = HttpUtility.HtmlDecode(albumTitle.InnerText);
-                RaiseEventLog($"Reading: {album.Title}");
-                var albumPhotosNodes = albumDocumentBodyNode.SelectNodes("//div").
-                    Where(p => p.Attributes["class"]?.Value == "_3-96 _2let");
-                foreach (var albumPhotoNode in albumPhotosNodes)
+                var albumDateNode = albumNode.NextSibling;
+                var albumLinkNode = albumNode.FirstChild;
+                var albumLinkImageNode = albumLinkNode.FirstChild;
+                var albumName = albumLinkNode.Attributes["href"]?.Value;
+                var albumDate = Convert.ToDateTime(albumDateNode.InnerText);
+                var albumCoverImageURL = albumLinkImageNode.Attributes["src"]?.Value;
+                RaiseEventLog($"Start - Reading Album Info '{albumName}'", LogDetailEnum.Verbose);
+                var album = new PhotosAlbumNode
                 {
-                    var photo = GetPhotoFromNode(albumPhotoNode);
-                    album.Photos.Add(photo);
+                    Name = albumName,
+                    Date = albumDate,
+                    URL = Path.GetFullPath(
+                        Path.Combine(FacebookParser.BaseFolderPath, albumName)),
+                    CoverImageURL = Path.GetFullPath(
+                        Path.Combine(FacebookParser.BaseFolderPath, albumCoverImageURL))
+                };
+                if (File.Exists(album.URL))
+                {
+                    var albumDocument = new HtmlDocument();
+                    albumDocument.Load(album.URL);
+                    var albumDocumentBodyNode = albumDocument.DocumentNode.SelectSingleNode("//body");
+                    var albumTitle = albumDocumentBodyNode.SelectNodes("//div").
+                        FirstOrDefault(p => p.Attributes["class"]?.Value == "_3b0d");
+                    album.Title = HttpUtility.HtmlDecode(albumTitle.InnerText);
+                    RaiseEventLog($"Reading: {album.Title}");
+                    var albumPhotosNodes = albumDocumentBodyNode.SelectNodes("//div").
+                        Where(p => p.Attributes["class"]?.Value == "_3-96 _2let");
+                    foreach (var albumPhotoNode in albumPhotosNodes)
+                    {
+                        var photo = GetPhotoFromNode(albumPhotoNode);
+                        album.Photos.Add(photo);
+                    }
                 }
+                RaiseEventLog($"{album.Photos.Count} photos in '{albumName}'", LogDetailEnum.Verbose);
+                RaiseEventLog($"End - Reading Album Info '{albumName}'", LogDetailEnum.Verbose);
+                return album;
             }
-            RaiseEventLog($"{album.Photos.Count} photos in '{albumName}'", LogDetailEnum.Verbose);
-            RaiseEventLog($"End - Reading Album Info '{albumName}'", LogDetailEnum.Verbose);
-            return album;
+            catch (Exception ex)
+            {
+                TotalErrors++;
+                RaiseEventLog($"ERROR - {ex.Message}'");
+                throw;
+            }
         }
 
         private PhotoNode GetPhotoFromNode(HtmlNode albumPhotoNode)
@@ -136,6 +146,7 @@ namespace FacebookFixDates
             if(exportFolder.Exists) exportFolder.Delete(true);
             exportFolder.Create();
             ExportPhotosInformationToFileSystem();
+            Clock.Stop();
         }
 
         public void ExportPhotosInformationToFileSystem()
@@ -147,9 +158,53 @@ namespace FacebookFixDates
             exportPhotosMainFolder.Create();
             foreach (var photoAlbum in FacebookParser.PhotoAlbums)
             {
-                var albumName = photoAlbum.Title.ReplaceInvalidCharsInFileName();
-                var albumFolder = exportPhotosMainFolder.CreateSubdirectory(albumName);
+                ExportAlbum(exportPhotosMainFolder, photoAlbum);
+            }
+        }
 
+        private void ExportAlbum(DirectoryInfo exportPhotosMainFolder, PhotosAlbumNode photoAlbum)
+        {
+            try
+            {
+                var albumName = photoAlbum.Title.ReplaceInvalidCharsInFileName();
+                RaiseEventLog($"Start - Exporting Album '{albumName}'", LogDetailEnum.Verbose);
+                var albumFolder = exportPhotosMainFolder.CreateSubdirectory(albumName);
+                foreach (var photo in photoAlbum.Photos)
+                {
+                    ExportPhoto(albumName, albumFolder, photo);
+                }
+                RaiseEventLog($"Exported: {photoAlbum.Photos.Count} photos in album: '{albumName}'");
+                RaiseEventLog($"End - Exporting Album '{albumName}'", LogDetailEnum.Verbose);
+                TotalAlbumsExported++;
+            }
+            catch (Exception ex)
+            {
+                TotalErrors++;
+                RaiseEventLog($"ERROR - {ex.Message}'");
+                throw;
+            }
+        }
+
+        private void ExportPhoto(string albumName, DirectoryInfo albumFolder, PhotoNode photo)
+        {
+            var photoFile = new FileInfo(photo.URL);
+            if (photoFile.Exists)
+            {
+                try
+                {
+                    var newPhotoFile = Path.GetFullPath(
+                        Path.Combine(albumFolder.FullName, photoFile.Name));
+                    photoFile.CopyTo(newPhotoFile);
+                    ImageExtensions.SaveDateMetadata(newPhotoFile, photo.Date);
+                    RaiseEventLog($"Exported: '{photoFile.Name}' to '{albumName}'", LogDetailEnum.Verbose);
+                    TotalPhotosExported++;
+                }
+                catch (Exception ex)
+                {
+                    TotalErrors++;
+                    RaiseEventLog($"ERROR - {ex.Message}'");
+                    throw;
+                }
             }
         }
     }
