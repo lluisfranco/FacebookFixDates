@@ -21,6 +21,7 @@ namespace FacebookFixDates
         const string FB_PHOTOS_INDEX_PAGE_NAME = "your_photos.html";
         const string EXPORT_FOLDER_NAME = "_Export";
         const string EXPORT_PHOTOS_FOLDER_NAME = "Photos";
+        const bool USE_ALBUM_NAME_IN_PHOTOS = true;
 
         public void RaiseEventLog(string message, LogDetailEnum detailMode = LogDetailEnum.Normal)
         {
@@ -105,6 +106,7 @@ namespace FacebookFixDates
                     foreach (var albumPhotoNode in albumPhotosNodes)
                     {
                         var photo = GetPhotoFromNode(albumPhotoNode);
+                        photo.AlbumNode = album;
                         album.Photos.Add(photo);
                     }
                 }
@@ -164,6 +166,7 @@ namespace FacebookFixDates
 
         private void ExportAlbum(DirectoryInfo exportPhotosMainFolder, PhotosAlbumNode photoAlbum)
         {
+            int i = 0;            
             try
             {
                 var albumName = photoAlbum.Title.ReplaceInvalidCharsInFileName();
@@ -171,7 +174,8 @@ namespace FacebookFixDates
                 var albumFolder = exportPhotosMainFolder.CreateSubdirectory(albumName);
                 foreach (var photo in photoAlbum.Photos)
                 {
-                    ExportPhoto(albumName, albumFolder, photo);
+                    i++;
+                    ExportPhoto(albumFolder, photo, i);
                 }
                 RaiseEventLog($"Exported: {photoAlbum.Photos.Count} photos in album: '{albumName}'");
                 RaiseEventLog($"End - Exporting Album '{albumName}'", LogDetailEnum.Verbose);
@@ -185,18 +189,25 @@ namespace FacebookFixDates
             }
         }
 
-        private void ExportPhoto(string albumName, DirectoryInfo albumFolder, PhotoNode photo)
-        {
+        private void ExportPhoto(DirectoryInfo albumFolder, PhotoNode photo, int i)
+        {            
             var photoFile = new FileInfo(photo.URL);
             if (photoFile.Exists)
             {
                 try
                 {
+                    var photoFileName = USE_ALBUM_NAME_IN_PHOTOS ? 
+                        $"{albumFolder.Name}_{i}.{photoFile.Extension}" : 
+                        photoFile.Name;
                     var newPhotoFile = Path.GetFullPath(
-                        Path.Combine(albumFolder.FullName, photoFile.Name));
+                        Path.Combine(albumFolder.FullName, photoFileName));
+                    if (File.Exists(newPhotoFile))
+                    {
+                        newPhotoFile = GetFileNewName(newPhotoFile);
+                    }
                     photoFile.CopyTo(newPhotoFile);
                     ImageExtensions.SaveDateMetadata(newPhotoFile, photo.Date);
-                    RaiseEventLog($"Exported: '{photoFile.Name}' to '{albumName}'", LogDetailEnum.Verbose);
+                    RaiseEventLog($"Exported: '{photoFile.Name}' to '{albumFolder.Name}'", LogDetailEnum.Verbose);
                     TotalPhotosExported++;
                 }
                 catch (Exception ex)
@@ -205,6 +216,21 @@ namespace FacebookFixDates
                     RaiseEventLog($"ERROR - {ex.Message}'");
                     throw;
                 }
+            }
+        }
+
+        private string GetFileNewName(string filename)
+        {
+            var fi = new FileInfo(filename);
+            if (fi.Exists)
+            {
+                var newname = $"{fi.Name.Replace("." + fi.Extension, null)}_1.{fi.Extension}";
+                var newpath = Path.GetFullPath(Path.Combine(fi.DirectoryName, newname));
+                return GetFileNewName(newpath);
+            }
+            else
+            {
+                return filename;
             }
         }
     }

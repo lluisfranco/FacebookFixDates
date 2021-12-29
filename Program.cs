@@ -51,7 +51,7 @@ namespace FacebookFixDates
             Console.WriteLine($"** TOTAL ALBUMS: {FacebookParserService.TotalAlbumsExported}");
             Console.WriteLine($"** TOTAL PHOTOS: {FacebookParserService.TotalPhotosExported}");
             Console.WriteLine($"** TOTAL ERRORS: {FacebookParserService.TotalErrors}");
-            Console.WriteLine($"** Elapsed Time: {FacebookParserService.Clock.ElapsedMilliseconds / 1000:n2}s.");
+            Console.WriteLine($"** Elapsed Time: {FacebookParserService.Clock.ElapsedMilliseconds / 1000:n0}s.");
             Console.WriteLine($"*****************************************************************************************");
         }
     }
