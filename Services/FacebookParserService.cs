@@ -42,18 +42,18 @@ namespace FacebookFixDates
                 throw new Exception("Facebook base path cannot be null.");
             var facebook_folder = new DirectoryInfo(FacebookParser.BaseFolderPath);
             if (!facebook_folder.Exists)
-                throw new Exception(FacebookParser.BaseFolderPath);
+                throw new DirectoryNotFoundException(FacebookParser.BaseFolderPath);
             var facebook_photos_path = Path.GetFullPath(
                 Path.Combine(FacebookParser.BaseFolderPath, FB_PHOTOS_FOLDER_NAME));
             var facebook_photos_folder = new DirectoryInfo(facebook_photos_path);
             FacebookParser.PhotosFolderPath = facebook_photos_path;
             if (!facebook_photos_folder.Exists)
-                throw new Exception(FacebookParser.PhotosFolderPath);
+                throw new DirectoryNotFoundException(FacebookParser.PhotosFolderPath);
             var facebook_photos_index_page_path = Path.GetFullPath(
                 Path.Combine(FacebookParser.PhotosFolderPath, FB_PHOTOS_INDEX_PAGE_NAME));
             FacebookParser.PhotosIndexPage = facebook_photos_index_page_path;
             if (!File.Exists(FacebookParser.PhotosIndexPage))
-                throw new Exception(FacebookParser.PhotosIndexPage);
+                throw new DirectoryNotFoundException(FacebookParser.PhotosIndexPage);
             RaiseEventLog($"Initialize - OK ({Clock.ElapsedMilliseconds:n2}ms.)");
         }
 

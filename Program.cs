@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 
 namespace FacebookFixDates
@@ -21,6 +22,10 @@ namespace FacebookFixDates
                 FacebookParserService.ReadPhotosInformationFromFileSystem();
                 FacebookParserService.ExportInformationToFileSystem();
                 PrintSummary();
+            }
+            catch (DirectoryNotFoundException dex)
+            {
+                Console.WriteLine($"** ERROR : Folder '{dex.Message}' not found **");
             }
             catch (Exception ex)
             {
