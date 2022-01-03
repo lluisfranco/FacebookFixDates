@@ -17,7 +17,7 @@ namespace FacebookFixDates
         public int TotalPhotosExported { get; private set; }
         public int TotalErrors { get; private set; }
 
-        const string FB_PHOTOS_FOLDER_NAME = "photos_and_videos";
+        const string FB_PHOTOS_FOLDER_NAME = "posts";
         const string FB_PHOTOS_INDEX_PAGE_NAME = "your_photos.html";
         const string EXPORT_FOLDER_NAME = "_Export";
         const string EXPORT_PHOTOS_FOLDER_NAME = "Photos";

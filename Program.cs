@@ -13,7 +13,7 @@ namespace FacebookFixDates
                 PrintHeader();
                 var facebook_base_path = Console.ReadLine();
 
-                facebook_base_path = "C:\\fb";// "/home/lluisfranco/Pictures/Fb";//"C:\\fb";
+                facebook_base_path = "C:\\fb2";// "/home/lluisfranco/Pictures/Fb";//"C:\\fb";
 
                 FacebookParserService = new FacebookParserService(facebook_base_path);
                 FacebookParserService.Log += (s, e) => { Console.WriteLine(e.LogMessage); };
